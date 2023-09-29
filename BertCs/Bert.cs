@@ -9,38 +9,13 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 
 
 namespace Bert {
-    public interface IUIServices
-    {
-        void ReportError(string message);
-        void Answer(string message);
-        string? GetQuestion();
-    }
 
     public class BertModel
     {
-        private readonly IUIServices uiServices;
         private Task<InferenceSession> createSession;
-        private string text;
-        public BertModel(string fileName, IUIServices uiServices, CancellationToken token)
+        public BertModel(CancellationToken token)
         {
-            this.uiServices = uiServices;
-            if (!File.Exists(fileName))
-            {
-                uiServices.ReportError($"File {fileName} does not exist.");
-            }
-            text = File.ReadAllText(fileName);
             createSession = Task.Run(() => CreateSession(token));
-        }
-        public async Task AnswerQuestions(CancellationToken token)
-        {
-            
-            string? question;
-            List<Task> questions = new List<Task>();
-            while ((question = uiServices.GetQuestion()) != null && question != "") 
-            {
-                questions.Add(Task.Factory.StartNew(() => AnswerOneQuestion(question, token)));
-            }
-            await Task.WhenAll(questions);
         }
         public async Task DownloadFile(string source, string destination, CancellationToken token)
         {
@@ -60,12 +35,9 @@ namespace Bert {
                 }
                 catch (HttpRequestException)
                 {
-                    // Console.WriteLine($"Error downloading file: {ex.Message}");
-                    // Console.WriteLine("Retrying in 5 seconds...");
                     token.ThrowIfCancellationRequested();
                     await Task.Delay(5000); // wait 5 seconds before retrying
                 }
-                // Console.WriteLine("File downloaded successfully!");
             }
         }
         public async Task<InferenceSession> CreateSession(CancellationToken token)
@@ -83,7 +55,7 @@ namespace Bert {
             }
             return new InferenceSession(modelPath);
         }
-        public async Task AnswerOneQuestion(string question, CancellationToken token) 
+        public async Task<string> AnswerOneQuestion(string text, string question, CancellationToken token) 
         {
             // var input = "Where does the hobbit live?";
             var sentence = $"{{\"question\": \"{question}\", \"context\": \"{text}\"}}";
@@ -128,7 +100,7 @@ namespace Bert {
                         .ToList();
             var connectedTokens = tokenizer.Untokenize(predictedTokens);
             // Print the result.
-            uiServices.Answer(string.Join(" ", connectedTokens));
+            return string.Join(" ", connectedTokens);
         }
         public static Tensor<long> ConvertToTensor(long[] inputArray, int inputDimension)
         {
