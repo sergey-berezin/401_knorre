@@ -12,10 +12,11 @@ namespace Bert {
 
     public class BertModel
     {
-        private Task<InferenceSession> createSession;
+        private InferenceSession? Session;
+        private Task createSession;
         public BertModel(CancellationToken token)
         {
-            createSession = Task.Run(() => CreateSession(token));
+            createSession = Task.Factory.StartNew(() => CreateSession(token), TaskCreationOptions.LongRunning);
         }
         public async Task DownloadFile(string source, string destination, CancellationToken token)
         {
@@ -40,20 +41,21 @@ namespace Bert {
                 }
             }
         }
-        public async Task<InferenceSession> CreateSession(CancellationToken token)
+        public async Task CreateSession(CancellationToken token)
         {
             string link = "https://storage.yandexcloud.net/dotnet4/bert-large-uncased-whole-word-masking-finetuned-squad.onnx";
             string modelPath = "bert-large-uncased-whole-word-masking-finetuned-squad.onnx";
             try 
             {
-                return new InferenceSession(modelPath);
+                Session = new InferenceSession(modelPath);
             }
             catch(OnnxRuntimeException)
             {
                 token.ThrowIfCancellationRequested();
                 await DownloadFile(link, modelPath, token);
             }
-            return new InferenceSession(modelPath);
+
+            Session = new InferenceSession(modelPath);
         }
         public async Task<string> AnswerOneQuestion(string text, string question, CancellationToken token) 
         {
@@ -84,7 +86,11 @@ namespace Bert {
             token.ThrowIfCancellationRequested();
             await createSession;
             token.ThrowIfCancellationRequested();
-            var output = createSession.Result.Run(input);
+            IDisposableReadOnlyCollection<DisposableNamedOnnxValue>? output;
+            lock(Session!)
+            {
+                output = Session.Run(input);
+            }
             List<float> startLogits = (output.ToList().First().Value as IEnumerable<float>)!.ToList();
             List<float> endLogits = (output.ToList().Last().Value as IEnumerable<float>)!.ToList();
 

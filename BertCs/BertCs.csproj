@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Knorre.Bart</PackageId>
-    <Version>0.1.2909.162</Version>
+    <Version>0.1.2909.171</Version>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
