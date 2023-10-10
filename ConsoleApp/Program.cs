@@ -22,10 +22,9 @@ internal class ConsoleApp
             List<Task> questions = new List<Task>();
             while ((question = Console.ReadLine()) != null && question != "") 
             {
-                
-                questions.Add(Task.Factory.StartNew(() => {
-                    var answer = model.AnswerOneQuestion(text, question,  ctf.Token);
-                    Console.WriteLine($"\nAnswer: {answer.Result}\n");}));
+                var answeringTask = model.AnswerOneQuestionTask(text, question, ctf.Token);
+                answeringTask.ContinueWith(t => {Console.WriteLine($"Answer: {t.Result}");});
+                questions.Add(answeringTask);
             }
 
             await Task.WhenAll(questions);

@@ -57,6 +57,11 @@ namespace Bert {
 
             Session = new InferenceSession(modelPath);
         }
+        public async Task<string> AnswerOneQuestionTask(string text, string question, CancellationToken token)
+        {
+            var answerQuestion = await Task.Factory.StartNew(() => AnswerOneQuestion(text, question, token), TaskCreationOptions.LongRunning).Result;
+            return answerQuestion;
+        }
         public async Task<string> AnswerOneQuestion(string text, string question, CancellationToken token) 
         {
             // var input = "Where does the hobbit live?";
