@@ -134,3 +134,5 @@ $RECYCLE.BIN/
 .DS_Store
 
 _NCrunch*
+bert-large-uncased-whole-word-masking-finetuned-squad.onnx
+Hobbit.txt
