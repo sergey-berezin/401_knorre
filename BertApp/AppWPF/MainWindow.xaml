@@ -26,8 +26,9 @@
                             TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Question" Grid.Row="0"/>
                         <TextBlock Margin="50,20,50,0" VerticalAlignment="Top"  
                             TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Answer" Grid.Row="1"/>
-                        <TextBox Margin="50,50,50,20" TextWrapping="Wrap" Text="TextBox" Grid.Row="0"/>
+                        <TextBox Margin="50,50,50,50" TextWrapping="Wrap" Text="TextBox" Grid.Row="0"/>
                         <TextBlock Margin="50,50,50,20" TextWrapping="Wrap" Text="TextBlock" Grid.Row="1"/>
+                        <Button Content="Ask" Margin="50,0,50,20" Grid.Row="0" Height="20" VerticalAlignment="Bottom"/>
                     </Grid>
                 </Grid>
             </TabItem>
