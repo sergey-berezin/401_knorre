@@ -16,7 +16,7 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Margin="50,20,50,0" VerticalAlignment="Top"  
                    TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Hobbit"/>
-                    <TextBlock Margin="50,50,50,20" TextWrapping="Wrap" Name="SourceTextBlock"/>
+                    <TextBlock Margin="50,50,50,20" TextWrapping="Wrap" Name="SourceTextBlock" Text="{Binding text}"/>
                     <Grid Grid.Column="1">
                         <Grid.RowDefinitions>
                             <RowDefinition/>
@@ -26,9 +26,11 @@
                             TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Question" Grid.Row="0"/>
                         <TextBlock Margin="50,20,50,0" VerticalAlignment="Top"  
                             TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Answer" Grid.Row="1"/>
-                        <TextBox Margin="50,50,50,50" TextWrapping="Wrap" Text="TextBox" Grid.Row="0"/>
-                        <TextBlock Margin="50,50,50,20" TextWrapping="Wrap" Text="TextBlock" Grid.Row="1"/>
-                        <Button Content="Ask" Margin="50,0,50,20" Grid.Row="0" Height="20" VerticalAlignment="Bottom"/>
+                        <TextBox Margin="50,50,50,50" TextWrapping="Wrap" Text="{Binding question}" Grid.Row="0"/>
+                        <TextBlock Margin="50,50,50,20" TextWrapping="Wrap" Text="{Binding answer}" Grid.Row="1"/>
+                        <Button Content="Ask" Command="{Binding AnswerQuestionCommand}" 
+                                Margin="50,0,50,20" Height="20"
+                                Grid.Row="0" VerticalAlignment="Bottom"/>
                     </Grid>
                 </Grid>
             </TabItem>
