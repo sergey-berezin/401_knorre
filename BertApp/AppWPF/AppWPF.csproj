@@ -11,4 +11,8 @@
     <PackageReference Include="Knorre.Bart" Version="0.1.2909.171" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ViewModel\ViewModel.csproj" />
+  </ItemGroup>
+
 </Project>
