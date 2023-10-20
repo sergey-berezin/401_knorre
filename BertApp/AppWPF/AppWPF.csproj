@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Knorre.Bart" Version="0.1.2909.171" />
+    <PackageReference Include="Knorre.Bart" Version="0.2.1010.152" />
   </ItemGroup>
 
   <ItemGroup>
