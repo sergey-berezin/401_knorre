@@ -1,4 +1,5 @@
 ﻿using Bert;
+using System.ComponentModel;
 using System.Windows.Input;
 
 namespace ViewModel;
@@ -13,11 +14,11 @@ public class BertTab
         this.text = text;
     }
 
-    public void AnswerQuestion(BertModel model, CancellationToken token)
+    public async void AnswerQuestion(BertModel model, CancellationToken token)
     {
         if (question is not null)
         {
-            answer = model.AnswerOneQuestion(text, question, token).Result;
+            answer = await model.AnswerOneQuestionTask(text, question, token);
         }
     }
 }
@@ -37,12 +38,17 @@ class RelayCommand : ICommand
     public void Execute(object? parameter) => execute.Invoke(parameter);
 }
 
-public class MainViewModel 
+public class MainViewModel : INotifyPropertyChanged
+
 {
     private BertModel bertModel;
     private List<BertTab> tabs;
     private int currentTabIndex;
     private CancellationToken token;
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void NotifyPropertyChanged(string propName) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     public ICommand AnswerQuestionCommand { get; private set; }
     public string? text
     {
@@ -51,7 +57,7 @@ public class MainViewModel
     public string? question
     {
         get { return currentTabIndex != -1 ? tabs[currentTabIndex].question : null; }
-        set { tabs[currentTabIndex].question = value;}
+        set { tabs[currentTabIndex].question = value; }
     }
     public string? answer
     {
@@ -78,8 +84,12 @@ public class MainViewModel
 
     public void AnswerQuestion(object? sender)
     {
-        
-        tabs[currentTabIndex].AnswerQuestion(bertModel, token);
+        Task.Factory.StartNew(() =>
+        {
+            tabs[currentTabIndex].AnswerQuestion(bertModel, token);
+            NotifyPropertyChanged("answer");
+        });
+
     }
 
 
