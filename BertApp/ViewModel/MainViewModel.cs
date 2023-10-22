@@ -31,13 +31,19 @@ public class BertTab : INotifyPropertyChanged
     public string Text { get; set; }
     public string? Question { get; set; }
     public string? Answer { get; set; }
+    public string FileName { get; set; }
+    public string TextName 
+    { 
+        get => Path.GetFileNameWithoutExtension(FileName);
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
     public ICommand AnswerQuestionCommand { get; private set; }
     public void NotifyPropertyChanged(string propName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-    public BertTab(string text, BertModel bertModel, CancellationToken token)
+    public BertTab(string text, string fileName, BertModel bertModel, CancellationToken token)
     {
         Text = text;
+        FileName = fileName;
         model = bertModel;
         AnswerQuestionCommand = new RelayCommand(AnswerQuestionTask);
         this.token = token;
@@ -80,11 +86,11 @@ public class MainViewModel : INotifyPropertyChanged
     }
     public void AddTab(object? sender)
     {
-        string? fileName = uiServices.ChooseFileToOpen();
-        if (fileName != null)
+        string? filePath = uiServices.ChooseFileToOpen();
+        if (filePath != null)
         {
-            string text = File.ReadAllText(fileName);
-            Tabs.Add(new BertTab(text, bertModel, token));
+            string text = File.ReadAllText(filePath);
+            Tabs.Add(new BertTab(text, Path.GetFileName(filePath), bertModel, token));
             NotifyPropertyChanged("Tabs");
         }
     }

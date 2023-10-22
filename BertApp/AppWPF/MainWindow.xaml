@@ -15,6 +15,12 @@
             <MenuItem Header="New Tab" Command="{Binding NewTabCommand}" Margin="0,0,0,0"/>
         </Menu>
         <TabControl Grid.Row="1" ItemsSource="{Binding Tabs}">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock
+                    Text="{Binding FileName}" />
+                </DataTemplate>
+            </TabControl.ItemTemplate>
             <TabControl.ContentTemplate>
                 <DataTemplate>
                     <Grid>
@@ -23,7 +29,7 @@
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Margin="50,20,50,0" VerticalAlignment="Top"  
-                                   TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Hobbit"/>
+                                   TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="{Binding TextName}"/>
                         <ScrollViewer Margin="50,50,50,20"  Name="SourceTextBlock">
                             <TextBlock TextWrapping="Wrap" Text="{Binding Text}"/>
                         </ScrollViewer>
