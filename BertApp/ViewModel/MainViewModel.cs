@@ -10,48 +10,66 @@ public interface IUIServices
 {
     string? ChooseFileToOpen();
 }
-class RelayCommand : ICommand
+public class RelayCommand : ICommand
 {
     private readonly Action<object?> execute;
+    private readonly Func<object?, bool>? canExecute;
 
-    public RelayCommand(Action<object?> execute)
+    public RelayCommand(Action<object?> execute, Func<object?, bool>? canExecute = null)
     {
         this.execute = execute;
+        this.canExecute = canExecute;
     }
 
     public event EventHandler? CanExecuteChanged;
 
-    public bool CanExecute(object? parameter) => true;
+    public void RaiseCanExecuteChanged()
+    {
+        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public bool CanExecute(object? parameter) => canExecute == null || canExecute(parameter);
 
     public void Execute(object? parameter) => execute.Invoke(parameter);
 }
 public class BertTab : INotifyPropertyChanged
 {
     private BertModel model;
+    private string? question;
     private CancellationTokenSource ctf;
     private CancellationToken token;
     private MainViewModel controller;
     public string Text { get; set; }
-    public string? Question { get; set; }
+    public string? Question
+    {
+        get => question;
+        set
+        {
+            AnswerQuestionCommand.RaiseCanExecuteChanged();
+            question = value;
+        }
+    }
     public string? Answer { get; set; }
     public string FileName { get; set; }
     public string TextName 
     { 
         get => Path.GetFileNameWithoutExtension(FileName);
     }
+    public bool IsAnswering { get; set; }
     public event PropertyChangedEventHandler? PropertyChanged;
-    public ICommand AnswerQuestionCommand { get; private set; }
-    public ICommand CloseTabCommand { get; private set; }
+    public RelayCommand AnswerQuestionCommand { get; private set; }
+    public RelayCommand CloseTabCommand { get; private set; }
     public void NotifyPropertyChanged(string propName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     public BertTab(string text, string fileName, BertModel bertModel, MainViewModel controller)
     {
         ctf = new CancellationTokenSource();
         token = ctf.Token;
+        IsAnswering = false;
         this.controller = controller;
         Text = text;
         FileName = fileName;
         model = bertModel;
-        AnswerQuestionCommand = new RelayCommand(AnswerQuestionTask);
+        AnswerQuestionCommand = new RelayCommand(AnswerQuestionTask, CanAnswer);
         CloseTabCommand = new RelayCommand(CloseTab);
     }
     public async void AnswerQuestion()
@@ -64,10 +82,21 @@ public class BertTab : INotifyPropertyChanged
     }
     public void AnswerQuestionTask(object? sender)
     {
+        IsAnswering = true;
+        AnswerQuestionCommand.RaiseCanExecuteChanged();
+        var uis = TaskScheduler.FromCurrentSynchronizationContext();
         Task.Factory.StartNew(() =>
         {
             AnswerQuestion();
-        });
+        }).ContinueWith(t =>
+        {
+            IsAnswering = false;
+            AnswerQuestionCommand.RaiseCanExecuteChanged();
+        }, CancellationToken.None, TaskContinuationOptions.None, uis);
+    }
+    public bool CanAnswer(object? sender)
+    {
+        return (Question is not null) && (!IsAnswering);
     }
     public void CloseTab(object? sender)
     {
