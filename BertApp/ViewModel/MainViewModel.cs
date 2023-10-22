@@ -1,4 +1,5 @@
 ﻿using Bert;
+using System.CodeDom;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
@@ -27,7 +28,9 @@ class RelayCommand : ICommand
 public class BertTab : INotifyPropertyChanged
 {
     private BertModel model;
+    private CancellationTokenSource ctf;
     private CancellationToken token;
+    private MainViewModel controller;
     public string Text { get; set; }
     public string? Question { get; set; }
     public string? Answer { get; set; }
@@ -38,15 +41,18 @@ public class BertTab : INotifyPropertyChanged
     }
     public event PropertyChangedEventHandler? PropertyChanged;
     public ICommand AnswerQuestionCommand { get; private set; }
+    public ICommand CloseTabCommand { get; private set; }
     public void NotifyPropertyChanged(string propName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-    public BertTab(string text, string fileName, BertModel bertModel)
+    public BertTab(string text, string fileName, BertModel bertModel, MainViewModel controller)
     {
-        CancellationTokenSource ctf = new CancellationTokenSource();
+        ctf = new CancellationTokenSource();
         token = ctf.Token;
+        this.controller = controller;
         Text = text;
         FileName = fileName;
         model = bertModel;
         AnswerQuestionCommand = new RelayCommand(AnswerQuestionTask);
+        CloseTabCommand = new RelayCommand(CloseTab);
     }
     public async void AnswerQuestion()
     {
@@ -62,6 +68,15 @@ public class BertTab : INotifyPropertyChanged
         {
             AnswerQuestion();
         });
+    }
+    public void CloseTab(object? sender)
+    {
+        ctf.Cancel();
+        var tabToDelete = controller.Tabs.FirstOrDefault(f => f.FileName == FileName);
+        if (tabToDelete != null)
+        {
+            controller.Tabs.Remove(tabToDelete);
+        }
     }
 }
 public class MainViewModel : INotifyPropertyChanged
@@ -86,7 +101,7 @@ public class MainViewModel : INotifyPropertyChanged
         if (filePath != null)
         {
             string text = File.ReadAllText(filePath);
-            Tabs.Add(new BertTab(text, Path.GetFileName(filePath), bertModel));
+            Tabs.Add(new BertTab(text, Path.GetFileName(filePath), bertModel, this));
             NotifyPropertyChanged("Tabs");
         }
     }
