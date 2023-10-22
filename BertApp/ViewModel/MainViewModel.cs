@@ -36,17 +36,17 @@ public class BertTab : INotifyPropertyChanged
     { 
         get => Path.GetFileNameWithoutExtension(FileName);
     }
-
     public event PropertyChangedEventHandler? PropertyChanged;
     public ICommand AnswerQuestionCommand { get; private set; }
     public void NotifyPropertyChanged(string propName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-    public BertTab(string text, string fileName, BertModel bertModel, CancellationToken token)
+    public BertTab(string text, string fileName, BertModel bertModel)
     {
+        CancellationTokenSource ctf = new CancellationTokenSource();
+        token = ctf.Token;
         Text = text;
         FileName = fileName;
         model = bertModel;
         AnswerQuestionCommand = new RelayCommand(AnswerQuestionTask);
-        this.token = token;
     }
     public async void AnswerQuestion()
     {
@@ -56,7 +56,6 @@ public class BertTab : INotifyPropertyChanged
             NotifyPropertyChanged("Answer");
         }
     }
-
     public void AnswerQuestionTask(object? sender)
     {
         Task.Factory.StartNew(() =>
@@ -64,7 +63,6 @@ public class BertTab : INotifyPropertyChanged
             AnswerQuestion();
         });
     }
-
 }
 public class MainViewModel : INotifyPropertyChanged
 {
@@ -77,8 +75,6 @@ public class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<BertTab> Tabs { get; set; }
     public MainViewModel(IUIServices uiServices)
     {
-        CancellationTokenSource ctf = new CancellationTokenSource();
-        token = ctf.Token;
         this.uiServices = uiServices;
         bertModel = new BertModel(token);
         NewTabCommand = new RelayCommand(AddTab);
@@ -90,8 +86,9 @@ public class MainViewModel : INotifyPropertyChanged
         if (filePath != null)
         {
             string text = File.ReadAllText(filePath);
-            Tabs.Add(new BertTab(text, Path.GetFileName(filePath), bertModel, token));
+            Tabs.Add(new BertTab(text, Path.GetFileName(filePath), bertModel));
             NotifyPropertyChanged("Tabs");
         }
     }
+
 }
