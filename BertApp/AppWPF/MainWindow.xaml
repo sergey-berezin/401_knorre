@@ -17,8 +17,15 @@
         <TabControl Grid.Row="1" ItemsSource="{Binding Tabs}">
             <TabControl.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock
-                    Text="{Binding FileName}" />
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Margin="10,0,0,0" Padding="0" 
+                                Command="{Binding CloseTab}"
+                                Content="&#x1F7AA;" 
+                                Background="{Binding RelativeSource={RelativeSource AncestorType={x:Type TabItem}}, Path=Background}"
+                                BorderBrush="{Binding RelativeSource={RelativeSource AncestorType={x:Type TabItem}}, Path=Background}"/>
+                        <TextBlock Text="{Binding FileName}" />
+                    </DockPanel>
+
                 </DataTemplate>
             </TabControl.ItemTemplate>
             <TabControl.ContentTemplate>
