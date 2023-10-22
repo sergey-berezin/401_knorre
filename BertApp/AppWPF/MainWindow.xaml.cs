@@ -19,13 +19,27 @@ namespace AppWPF
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, IUIServices
     {
         public MainWindow()
         {
             InitializeComponent();
-            MainViewModel viewModel = new MainViewModel();
+            MainViewModel viewModel = new MainViewModel(this);
             DataContext = viewModel;
+        }
+        public string? ChooseFileToOpen()
+        {
+            Microsoft.Win32.OpenFileDialog openFileDialog = new()
+            {
+                FileName = "Hobbit", 
+                DefaultExt = ".txt"
+            };
+            bool? result = openFileDialog.ShowDialog();
+            if (result == true)
+            {
+                return openFileDialog.FileName;
+            }
+            return null;
         }
     }
 }

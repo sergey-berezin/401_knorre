@@ -5,6 +5,25 @@ using System.Windows.Input;
 
 namespace ViewModel;
 
+public interface IUIServices
+{
+    string? ChooseFileToOpen();
+}
+class RelayCommand : ICommand
+{
+    private readonly Action<object?> execute;
+
+    public RelayCommand(Action<object?> execute)
+    {
+        this.execute = execute;
+    }
+
+    public event EventHandler? CanExecuteChanged;
+
+    public bool CanExecute(object? parameter) => true;
+
+    public void Execute(object? parameter) => execute.Invoke(parameter);
+}
 public class BertTab : INotifyPropertyChanged
 {
     private BertModel model;
@@ -41,47 +60,32 @@ public class BertTab : INotifyPropertyChanged
     }
 
 }
-class RelayCommand : ICommand
-{
-    private readonly Action<object?> execute;
-
-    public RelayCommand(Action<object?> execute)
-    {
-        this.execute = execute;
-    }
-
-    public event EventHandler? CanExecuteChanged;
-
-    public bool CanExecute(object? parameter) => true;
-
-    public void Execute(object? parameter) => execute.Invoke(parameter);
-}
-
 public class MainViewModel : INotifyPropertyChanged
 {
     private BertModel bertModel;
+    private IUIServices uiServices;
     private CancellationToken token;
     public ICommand NewTabCommand { get; private set; }
     public event PropertyChangedEventHandler? PropertyChanged;
-
     public void NotifyPropertyChanged(string propName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-
     public ObservableCollection<BertTab> Tabs { get; set; }
-
-    public MainViewModel()
+    public MainViewModel(IUIServices uiServices)
     {
         CancellationTokenSource ctf = new CancellationTokenSource();
         token = ctf.Token;
+        this.uiServices = uiServices;
         bertModel = new BertModel(token);
         NewTabCommand = new RelayCommand(AddTab);
         Tabs = new ObservableCollection<BertTab>();
     }
-
     public void AddTab(object? sender)
     {
-        string fileName = "C:\\Users\\knorr\\Desktop\\CMC\\FourthYear\\C#\\FirstTask\\BertCsFirst\\BertApp\\Hobbit.txt";
-        string text = File.ReadAllText(fileName);
-        Tabs.Add(new BertTab(text, bertModel, token));
-        NotifyPropertyChanged("Tabs");
+        string? fileName = uiServices.ChooseFileToOpen();
+        if (fileName != null)
+        {
+            string text = File.ReadAllText(fileName);
+            Tabs.Add(new BertTab(text, bertModel, token));
+            NotifyPropertyChanged("Tabs");
+        }
     }
 }
