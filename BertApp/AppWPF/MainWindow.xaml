@@ -7,7 +7,14 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <TabControl ItemsSource="{Binding Tabs}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="20*"/>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0" Margin="0,0,0,0">
+            <MenuItem Header="New Tab" Command="{Binding NewTabCommand}" Margin="0,0,0,0"/>
+        </Menu>
+        <TabControl Grid.Row="1" ItemsSource="{Binding Tabs}">
             <TabControl.ContentTemplate>
                 <DataTemplate>
                     <Grid>

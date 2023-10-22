@@ -57,24 +57,31 @@ class RelayCommand : ICommand
     public void Execute(object? parameter) => execute.Invoke(parameter);
 }
 
-public class MainViewModel 
+public class MainViewModel : INotifyPropertyChanged
 {
     private BertModel bertModel;
     private CancellationToken token;
+    public ICommand NewTabCommand { get; private set; }
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void NotifyPropertyChanged(string propName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+
     public ObservableCollection<BertTab> Tabs { get; set; }
+
     public MainViewModel()
     {
         CancellationTokenSource ctf = new CancellationTokenSource();
         token = ctf.Token;
         bertModel = new BertModel(token);
+        NewTabCommand = new RelayCommand(AddTab);
         Tabs = new ObservableCollection<BertTab>();
-        
     }
 
-    public void AddTab()
+    public void AddTab(object? sender)
     {
         string fileName = "C:\\Users\\knorr\\Desktop\\CMC\\FourthYear\\C#\\FirstTask\\BertCsFirst\\BertApp\\Hobbit.txt";
         string text = File.ReadAllText(fileName);
         Tabs.Add(new BertTab(text, bertModel, token));
+        NotifyPropertyChanged("Tabs");
     }
 }

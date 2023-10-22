@@ -25,7 +25,6 @@ namespace AppWPF
         {
             InitializeComponent();
             MainViewModel viewModel = new MainViewModel();
-            viewModel.AddTab();
             DataContext = viewModel;
         }
     }
