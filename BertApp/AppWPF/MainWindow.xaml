@@ -7,35 +7,37 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <TabControl>
-            <TabItem Header="TabItem">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Margin="50,20,50,0" VerticalAlignment="Top"  
-                               TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Hobbit"/>
-                    <ScrollViewer Margin="50,50,50,20"  Name="SourceTextBlock">
-                        <TextBlock TextWrapping="Wrap" Text="{Binding text}"/>
-                    </ScrollViewer>
-                    <Grid Grid.Column="1">
-                        <Grid.RowDefinitions>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                        </Grid.RowDefinitions>
+        <TabControl ItemsSource="{Binding Tabs}">
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
                         <TextBlock Margin="50,20,50,0" VerticalAlignment="Top"  
-                                   TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Question" Grid.Row="0"/>
-                        <TextBlock Margin="50,20,50,0" VerticalAlignment="Top"  
-                                   TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Answer" Grid.Row="1"/>
-                        <TextBox Margin="50,50,50,50" TextWrapping="Wrap" Text="{Binding question, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0"/>
-                        <TextBlock Margin="50,50,50,20" TextWrapping="Wrap" Text="{Binding answer, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1"/>
-                        <Button Content="Ask" Command="{Binding AnswerQuestionCommand}" 
-                                Margin="50,0,50,20" Height="20"
-                                Grid.Row="0" VerticalAlignment="Bottom"/>
+                                   TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Hobbit"/>
+                        <ScrollViewer Margin="50,50,50,20"  Name="SourceTextBlock">
+                            <TextBlock TextWrapping="Wrap" Text="{Binding Text}"/>
+                        </ScrollViewer>
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Margin="50,20,50,0" VerticalAlignment="Top"  
+                                       TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Question" Grid.Row="0"/>
+                            <TextBlock Margin="50,20,50,0" VerticalAlignment="Top"  
+                                       TextWrapping="Wrap" TextAlignment="Center" Height="20" Text="Answer" Grid.Row="1"/>
+                            <TextBox Margin="50,50,50,50" TextWrapping="Wrap" Text="{Binding Question, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0"/>
+                            <TextBlock Margin="50,50,50,20" TextWrapping="Wrap" Text="{Binding Answer, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1"/>
+                            <Button Content="Ask" Command="{Binding AnswerQuestionCommand}" 
+                                    Margin="50,0,50,20" Height="20"
+                                    Grid.Row="0" VerticalAlignment="Bottom"/>
+                        </Grid>
                     </Grid>
-                </Grid>
-            </TabItem>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
         </TabControl>
 
     </Grid>

@@ -1,26 +1,45 @@
 ﻿using Bert;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 
 namespace ViewModel;
 
-public class BertTab
+public class BertTab : INotifyPropertyChanged
 {
-    public string text;
-    public string? question;
-    public string? answer;
-    public BertTab(string text)
-    {
-        this.text = text;
-    }
+    private BertModel model;
+    private CancellationToken token;
+    public string Text { get; set; }
+    public string? Question { get; set; }
+    public string? Answer { get; set; }
 
-    public async void AnswerQuestion(BertModel model, CancellationToken token)
+    public event PropertyChangedEventHandler? PropertyChanged;
+    public ICommand AnswerQuestionCommand { get; private set; }
+    public void NotifyPropertyChanged(string propName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+    public BertTab(string text, BertModel bertModel, CancellationToken token)
     {
-        if (question is not null)
+        Text = text;
+        model = bertModel;
+        AnswerQuestionCommand = new RelayCommand(AnswerQuestionTask);
+        this.token = token;
+    }
+    public async void AnswerQuestion()
+    {
+        if (Question is not null)
         {
-            answer = await model.AnswerOneQuestionTask(text, question, token);
+            Answer = await model.AnswerOneQuestionTask(Text, Question, token);
+            NotifyPropertyChanged("Answer");
         }
     }
+
+    public void AnswerQuestionTask(object? sender)
+    {
+        Task.Factory.StartNew(() =>
+        {
+            AnswerQuestion();
+        });
+    }
+
 }
 class RelayCommand : ICommand
 {
@@ -38,59 +57,24 @@ class RelayCommand : ICommand
     public void Execute(object? parameter) => execute.Invoke(parameter);
 }
 
-public class MainViewModel : INotifyPropertyChanged
-
+public class MainViewModel 
 {
     private BertModel bertModel;
-    private List<BertTab> tabs;
-    private int currentTabIndex;
     private CancellationToken token;
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    public void NotifyPropertyChanged(string propName) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-    public ICommand AnswerQuestionCommand { get; private set; }
-    public string? text
-    {
-        get { return currentTabIndex != -1 ? tabs[currentTabIndex].text : null; }
-    }
-    public string? question
-    {
-        get { return currentTabIndex != -1 ? tabs[currentTabIndex].question : null; }
-        set { tabs[currentTabIndex].question = value; }
-    }
-    public string? answer
-    {
-        get { return currentTabIndex != -1 ? tabs[currentTabIndex].answer : null; }
-        set { tabs[currentTabIndex].answer = value; }
-    }
+    public ObservableCollection<BertTab> Tabs { get; set; }
     public MainViewModel()
     {
         CancellationTokenSource ctf = new CancellationTokenSource();
         token = ctf.Token;
         bertModel = new BertModel(token);
-        tabs = new List<BertTab>();
-        currentTabIndex = -1;
-        AnswerQuestionCommand = new RelayCommand(AnswerQuestion);
+        Tabs = new ObservableCollection<BertTab>();
+        
     }
 
     public void AddTab()
     {
         string fileName = "C:\\Users\\knorr\\Desktop\\CMC\\FourthYear\\C#\\FirstTask\\BertCsFirst\\BertApp\\Hobbit.txt";
         string text = File.ReadAllText(fileName);
-        tabs.Add(new BertTab(text));
-        currentTabIndex = tabs.Count - 1;
+        Tabs.Add(new BertTab(text, bertModel, token));
     }
-
-    public void AnswerQuestion(object? sender)
-    {
-        Task.Factory.StartNew(() =>
-        {
-            tabs[currentTabIndex].AnswerQuestion(bertModel, token);
-            NotifyPropertyChanged("answer");
-        });
-
-    }
-
-
 }
