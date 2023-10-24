@@ -72,27 +72,18 @@ public class BertTab : INotifyPropertyChanged
         AnswerQuestionCommand = new RelayCommand(AnswerQuestionTask, CanAnswer);
         CloseTabCommand = new RelayCommand(CloseTab);
     }
-    public async void AnswerQuestion()
+    public async void AnswerQuestionTask(object? sender)
     {
+        IsAnswering = true;
+        AnswerQuestionCommand.RaiseCanExecuteChanged();
         if (Question is not null)
         {
             Answer = await model.AnswerOneQuestionTask(Text, Question, token);
             NotifyPropertyChanged("Answer");
         }
-    }
-    public void AnswerQuestionTask(object? sender)
-    {
-        IsAnswering = true;
+        
+        IsAnswering = false;
         AnswerQuestionCommand.RaiseCanExecuteChanged();
-        var uis = TaskScheduler.FromCurrentSynchronizationContext();
-        Task.Factory.StartNew(() =>
-        {
-            AnswerQuestion();
-        }).ContinueWith(t =>
-        {
-            IsAnswering = false;
-            AnswerQuestionCommand.RaiseCanExecuteChanged();
-        }, CancellationToken.None, TaskContinuationOptions.None, uis);
     }
     public bool CanAnswer(object? sender)
     {
