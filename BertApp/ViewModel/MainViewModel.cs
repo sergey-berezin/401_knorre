@@ -3,6 +3,8 @@ using System.CodeDom;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
+using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
 
 namespace ViewModel;
 
@@ -35,11 +37,17 @@ public class RelayCommand : ICommand
 public class BertTab : INotifyPropertyChanged
 {
     private BertModel model;
+    [JsonProperty("quesion")]
     private string? question;
+    [JsonIgnore]
     private CancellationTokenSource ctf;
+    [JsonIgnore]
     private CancellationToken token;
+    [JsonIgnore]
     private MainViewModel controller;
+    [JsonProperty("text")]
     public string Text { get; set; }
+    [JsonIgnore]
     public string? Question
     {
         get => question;
@@ -49,15 +57,21 @@ public class BertTab : INotifyPropertyChanged
             question = value;
         }
     }
+    [JsonProperty("answer")]
     public string? Answer { get; set; }
+    [JsonProperty("file_name")]
     public string FileName { get; set; }
+    [JsonIgnore]
     public string TextName 
     { 
         get => Path.GetFileNameWithoutExtension(FileName);
     }
+    [JsonIgnore]
     public bool IsAnswering { get; set; }
     public event PropertyChangedEventHandler? PropertyChanged;
+    [JsonIgnore]
     public RelayCommand AnswerQuestionCommand { get; private set; }
+    [JsonIgnore]
     public RelayCommand CloseTabCommand { get; private set; }
     public void NotifyPropertyChanged(string propName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     public BertTab(string text, string fileName, BertModel bertModel, MainViewModel controller)
@@ -110,10 +124,29 @@ public class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<BertTab> Tabs { get; set; }
     public MainViewModel(IUIServices uiServices)
     {
+        try
+        {
+            string? prevSessionDescription = File.ReadAllText("session.json");
+            var prevSessionTabs = JsonConvert.DeserializeObject<ObservableCollection<BertTab>>(prevSessionDescription);
+            if (prevSessionTabs != null)
+            {
+                Tabs = prevSessionTabs;
+            } else
+            {
+                Tabs = new ObservableCollection<BertTab>();
+            }
+        }
+        catch (FileNotFoundException)
+        {
+            Tabs = new ObservableCollection<BertTab>();
+        }
+        catch (JsonSerializationException)
+        {
+            Tabs = new ObservableCollection<BertTab>();
+        }
         this.uiServices = uiServices;
         bertModel = new BertModel(token);
         NewTabCommand = new RelayCommand(AddTab);
-        Tabs = new ObservableCollection<BertTab>();
     }
     public void AddTab(object? sender)
     {
@@ -124,6 +157,11 @@ public class MainViewModel : INotifyPropertyChanged
             Tabs.Add(new BertTab(text, Path.GetFileName(filePath), bertModel, this));
             NotifyPropertyChanged("Tabs");
         }
+    }
+    public void SaveCurrentState(object? sender, CancelEventArgs e)
+    {
+        string output = JsonConvert.SerializeObject(Tabs);
+        File.WriteAllText("session.json", output);
     }
 
 }

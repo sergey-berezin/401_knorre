@@ -26,6 +26,7 @@ namespace AppWPF
             InitializeComponent();
             MainViewModel viewModel = new MainViewModel(this);
             DataContext = viewModel;
+            Closing += viewModel.SaveCurrentState;
         }
         public string? ChooseFileToOpen()
         {
