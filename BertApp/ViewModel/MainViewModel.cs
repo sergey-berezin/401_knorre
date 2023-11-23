@@ -36,38 +36,50 @@ public class RelayCommand : ICommand
 
     public void Execute(object? parameter) => execute.Invoke(parameter);
 }
+
+public class BertTabState
+{
+    
+    public string? text;
+    public string? fileName;
+    public string? question;
+    public string? answer;
+
+}
 public class BertTab : INotifyPropertyChanged
 {
-    [JsonProperty("quesion")]
-    private string? question;
-    [JsonIgnore]
     private CancellationTokenSource ctf;
-    [JsonIgnore]
     private CancellationToken token;
-    [JsonIgnore]
     public MainViewModel? controller;
-    [JsonProperty("text")]
-    public string Text { get; set; }
-    [JsonIgnore]
+    public BertTabState tabState;
+    public string Text
+    {
+        get => tabState.text!;
+        set { tabState.text = value; }
+    }
     public string? Question
     {
-        get => question;
+        get => tabState.question;
         set
         {
             AnswerQuestionCommand.RaiseCanExecuteChanged();
-            question = value;
+            tabState.question = value;
         }
     }
-    [JsonProperty("answer")]
-    public string? Answer { get; set; }
-    [JsonProperty("file_name")]
-    public string FileName { get; set; }
-    [JsonIgnore]
+    public string? Answer
+    {
+        get => tabState.answer;
+        set { tabState.answer = value; }
+    }
+    public string FileName
+    {
+        get => tabState.fileName!;
+        set { tabState.fileName = value; }
+    }
     public string TextName
     {
         get => Path.GetFileNameWithoutExtension(FileName);
     }
-    [JsonIgnore]
     public bool IsAnswering { get; set; }
     public List<AnsweredQuestion>? Answered
     {
@@ -90,19 +102,27 @@ public class BertTab : INotifyPropertyChanged
         }
     }
     public event PropertyChangedEventHandler? PropertyChanged;
-    [JsonIgnore]
     public RelayCommand AnswerQuestionCommand { get; private set; }
-    [JsonIgnore]
     public RelayCommand CloseTabCommand { get; private set; }
     public void NotifyPropertyChanged(string propName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     public BertTab(string text, string fileName, MainViewModel controller)
     {
+        tabState = new BertTabState();
         ctf = new CancellationTokenSource();
         token = ctf.Token;
         IsAnswering = false;
         this.controller = controller;
         Text = text;
         FileName = fileName;
+        AnswerQuestionCommand = new RelayCommand(AnswerQuestionTask, CanAnswer);
+        CloseTabCommand = new RelayCommand(CloseTab);
+    }
+    public BertTab(BertTabState state, MainViewModel controller) 
+    {
+        tabState = state;
+        ctf = new CancellationTokenSource();
+        token = ctf.Token;
+        this.controller = controller;
         AnswerQuestionCommand = new RelayCommand(AnswerQuestionTask, CanAnswer);
         CloseTabCommand = new RelayCommand(CloseTab);
     }
@@ -118,8 +138,8 @@ public class BertTab : INotifyPropertyChanged
                 Answer = questionHistory.answer;
             } else
             {
-                Answer = await controller!.bertModel.AnswerOneQuestionTask(Text, Question, token);
-                var answeredQuestion = new AnsweredQuestion(Question, Answer);
+                Answer = await controller!.bertModel.AnswerOneQuestionTask(Text, Question!, token);
+                var answeredQuestion = new AnsweredQuestion(Question!, Answer);
                 Answered!.Add(answeredQuestion);
             }
             NotifyPropertyChanged("Answer");
@@ -177,26 +197,22 @@ public class MainViewModel : INotifyPropertyChanged
     public List<TextAnsweredQuestion> AllAnsweredQuestions { get; set; }
     public MainViewModel(IUIServices uiServices)
     {
+        Tabs = new ObservableCollection<BertTab>();
+        AllAnsweredQuestions = new List<TextAnsweredQuestion>();
         try
         {
             string? prevSessionDescription = File.ReadAllText("session.json");
-            var prevSessionTabs = JsonConvert.DeserializeObject<ObservableCollection<BertTab>>(prevSessionDescription);
+            var prevSessionTabs = JsonConvert.DeserializeObject<List<BertTabState>>(prevSessionDescription);
             if (prevSessionTabs != null)
             {
-                Tabs = prevSessionTabs;
-            } else
-            {
-                Tabs = new ObservableCollection<BertTab>();
+                foreach (var tabState in prevSessionTabs)
+                {
+                    Tabs.Add(new BertTab(tabState, this));
+                }
             }
         }
-        catch (FileNotFoundException)
-        {
-            Tabs = new ObservableCollection<BertTab>();
-        }
-        catch (JsonSerializationException)
-        {
-            Tabs = new ObservableCollection<BertTab>();
-        }
+        catch (FileNotFoundException) { }
+        catch (JsonSerializationException) { }
         try
         {
             string? prevSessionDescription = File.ReadAllText("answered_questions.json");
@@ -204,24 +220,11 @@ public class MainViewModel : INotifyPropertyChanged
             if (allAnsweredQuestions != null)
             {
                 AllAnsweredQuestions = allAnsweredQuestions;
-            } else
-            {
-                AllAnsweredQuestions = new List<TextAnsweredQuestion>();
             }
             
         }
-        catch (FileNotFoundException)
-        {
-            AllAnsweredQuestions = new List<TextAnsweredQuestion>();
-        }
-        catch (JsonSerializationException)
-        {
-            AllAnsweredQuestions = new List<TextAnsweredQuestion>();
-        }
-        foreach (var tab in Tabs)
-        {
-            tab.controller = this;
-        }
+        catch (FileNotFoundException) { }
+        catch (JsonSerializationException) { }
         this.uiServices = uiServices;
         bertModel = new BertModel(token);
         NewTabCommand = new RelayCommand(AddTab);
@@ -238,8 +241,8 @@ public class MainViewModel : INotifyPropertyChanged
     }
     public void SaveCurrentState(object? sender, CancelEventArgs e)
     {
-        string session = JsonConvert.SerializeObject(Tabs);
-        File.WriteAllText("session.json", session);
+        string session = JsonConvert.SerializeObject(Tabs.Select(tab => tab.tabState));
+        File.WriteAllText("session.json", (session));
         string allAnsweredQuestions = JsonConvert.SerializeObject(AllAnsweredQuestions);
         File.WriteAllText("answered_questions.json", allAnsweredQuestions);
     }
