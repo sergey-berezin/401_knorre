@@ -15,13 +15,13 @@ namespace Server.Controllers
     public class BertController : ControllerBase
     {
         [HttpPost]
-        public async Task<ActionResult<string>> AskQuestions(Request request)
+        public async Task<ActionResult<Response>> AskQuestions(Request request)
         {
             CancellationTokenSource ctf = new CancellationTokenSource();
             CancellationToken token = ctf.Token;
             BertModel model = new BertModel(token);
-            string response;
-            response = await model.AnswerOneQuestionTask(request.Text, request.Question, token);
+            string answer = await model.AnswerOneQuestionTask(request.Text, request.Question, token);
+            Response response = new Response(answer);
             return response;
         }
     }
