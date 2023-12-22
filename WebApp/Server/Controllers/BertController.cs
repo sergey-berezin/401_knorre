@@ -14,13 +14,13 @@ namespace Server.Controllers
     [ApiController]
     public class BertController : ControllerBase
     {
+        static public CancellationTokenSource ctf = new CancellationTokenSource();
+        static public CancellationToken token = ctf.Token;    
+        static public BertModel model = new BertModel(token);
         [HttpPost]
         public async Task<ActionResult<Response>> AskQuestions(Request request)
         {
-            Response response = new();
-            CancellationTokenSource ctf = new CancellationTokenSource();
-            CancellationToken token = ctf.Token;
-            BertModel model = new BertModel(token);
+            Response response = new();       
             foreach (var question in request.Questions)
             {
                 string answer = await model.AnswerOneQuestionTask(request.Text, question, token);
