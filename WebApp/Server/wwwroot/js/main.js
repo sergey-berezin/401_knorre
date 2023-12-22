@@ -47,3 +47,40 @@ function uploadFile()
         reader.readAsText(file);
     }
 }
+
+function addEntry() 
+{
+    const container = document.getElementById("entry-container");
+ 
+    const newEntry = document.createElement("div");
+    newEntry.classList.add("question-block");
+ 
+    const labelDiv = document.createElement("div");
+    labelDiv.classList.add("label");
+    labelDiv.innerText = "Question:"
+    newEntry.appendChild(labelDiv);
+
+    const textArea = document.createElement("textarea");
+    textArea.classList.add("question");
+    newEntry.appendChild(textArea);
+ 
+    const answerDiv = document.createElement("div");
+    answerDiv.classList.add("answer");
+    newEntry.appendChild(answerDiv);
+ 
+    const removeBtn = document.createElement("button");
+    removeBtn.classList.add("remove-btn");
+    removeBtn.innerText = "Remove";
+    removeBtn.onclick = function() {
+     removeEntry(removeBtn);
+    }
+
+    newEntry.appendChild(removeBtn);
+ 
+    container.appendChild(newEntry);
+}
+ 
+function removeEntry(btn) {
+    const entryDiv = btn.parentNode;
+    entryDiv.parentNode.removeChild(entryDiv);
+}
