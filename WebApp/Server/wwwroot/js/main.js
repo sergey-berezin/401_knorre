@@ -3,13 +3,21 @@ async function sendPostRequest()
     try 
     {
         const url = "https://localhost:7146/Bert";
+        const questionContainer = document.getElementById("question-container");
+        const questionsBlocks = questionContainer.querySelectorAll(".question-block");
+        let questions = [];
+        let answerDivs = [];
+        questionsBlocks.forEach(block => {
+            questions.push(block.querySelector(".question").value);
+            answerDivs.push(block.querySelector(".answer"));
+        });
+        
         const data = { 
-            text: document.getElementById("text").innerText,
-            question: document.getElementById("question").value 
+            Text: document.getElementById("text").innerText,
+            Questions: questions
         };
 
-        console.log("Request sent!")
-
+        console.log("Request sent!");
         response = await fetch(url, {
             method: "POST",
             body: JSON.stringify(data),
@@ -20,8 +28,10 @@ async function sendPostRequest()
         })
         console.log(response);
         response = await response.json();
-        console.log(response);
-        document.getElementById("answer").innerText = response.answer;
+        for (let i = 0; i < response.answers.length; i++) {
+            answerDivs[i].innerText = response.answers[i];
+          }
+
     }
     catch(e) 
     {
@@ -50,7 +60,7 @@ function uploadFile()
 
 function addEntry() 
 {
-    const container = document.getElementById("entry-container");
+    const container = document.getElementById("question-container");
  
     const newEntry = document.createElement("div");
     newEntry.classList.add("question-block");
