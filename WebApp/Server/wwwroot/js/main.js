@@ -1,5 +1,10 @@
 async function sendPostRequest() 
 {
+    statusDiv = document.getElementById("status");
+    statusDiv.innerText = "Status: Sent";
+    statusDiv.classList.add("sent");
+    statusDiv.classList.remove("inactive");
+    statusDiv.classList.remove("recieved");
     try 
     {
         const url = "https://localhost:7146/Bert";
@@ -28,9 +33,13 @@ async function sendPostRequest()
         })
         console.log(response);
         response = await response.json();
-        for (let i = 0; i < response.answers.length; i++) {
+        for (let i = 0; i < response.answers.length; i++)
+        {
             answerDivs[i].innerText = response.answers[i];
-          }
+        }
+        statusDiv.innerText = "Status: Recieved";
+        statusDiv.classList.add("recieved");
+        statusDiv.classList.remove("sent");
 
     }
     catch(e) 
