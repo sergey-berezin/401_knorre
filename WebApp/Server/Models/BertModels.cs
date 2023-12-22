@@ -3,21 +3,21 @@ namespace Server.Models
 
 
     public class Request {
-        public string Question {get; set;}
+        public List<string> Questions {get; set;}
         public string Text {get; set;} 
 
-        public Request(string text, string question) {
+        public Request(string text) {
             Text = text;
-            Question = question;
+            Questions = new();
         }
     }
 
     public class Response {
-        public string Answer {get; set;}
+        public List<string> Answers {get; set;}
 
-        public Response (string answer)
+        public Response ()
         {
-            Answer = answer;
+            Answers = new();
         }
     }
 }

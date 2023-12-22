@@ -17,11 +17,15 @@ namespace Server.Controllers
         [HttpPost]
         public async Task<ActionResult<Response>> AskQuestions(Request request)
         {
+            Response response = new();
             CancellationTokenSource ctf = new CancellationTokenSource();
             CancellationToken token = ctf.Token;
             BertModel model = new BertModel(token);
-            string answer = await model.AnswerOneQuestionTask(request.Text, request.Question, token);
-            Response response = new Response(answer);
+            foreach (var question in request.Questions)
+            {
+                string answer = await model.AnswerOneQuestionTask(request.Text, question, token);
+                response.Answers.Add(answer);    
+            }
             return response;
         }
     }
