@@ -18,13 +18,19 @@ namespace Server.Controllers
         static public CancellationToken token = ctf.Token;    
         static public BertModel model = new BertModel(token);
         [HttpPost]
-        public async Task<ActionResult<Response>> AskQuestions(Request request)
+        public ActionResult<Response> AskQuestions(Request request)
         {
-            Response response = new();       
+            Response response = new();
+            List<Task<string>> tasks = new();    
             foreach (var question in request.Questions)
             {
-                string answer = await model.AnswerOneQuestionTask(request.Text, question, token);
-                response.Answers.Add(answer);    
+                var task = model.AnswerOneQuestionTask(request.Text, question, token);
+                tasks.Add(task);
+            }
+            Task.WaitAll(tasks.ToArray());
+            foreach (var task in tasks) 
+            {
+                response.Answers.Add(task.Result);
             }
             return response;
         }
