@@ -16,7 +16,7 @@
 
  <!-- Text field to display uploaded text -->
  <label for="text">Uploaded Text:</label>
- <textarea id="text" rows="10" cols="50"></textarea><br><br>
+ <div id="text" rows="10" cols="50"></div><br><br>
 
  <!-- Text box to enter text -->
  <label for="question">Question:</label>
@@ -24,7 +24,7 @@
 
  <!-- Text field to display the answer -->
  <label for="answer">Answer:</label>
- <textarea id="answer" rows="10" cols="50"></textarea><br><br>
+ <div id="answer" rows="10" cols="50"></div><br><br>
 
  <!-- Button to send POST request -->
  <button onclick="sendPostRequest()">Send question</button>
@@ -35,9 +35,12 @@
         try 
         {
             const url = "https://localhost:7146/Bert";
-            const data = { text: document.getElementById("text").value, question: document.getElementById("question").value };
+            const data = { 
+                text: document.getElementById("text").innerText,
+                question: document.getElementById("question").value 
+            };
 
-            console.log(JSON.stringify(data))
+            console.log("Request sent!")
 
             response = await fetch(url, {
                 method: "POST",
@@ -50,7 +53,7 @@
             console.log(response);
             response = await response.json();
             console.log(response);
-            document.getElementById("answer").value = response.answer;
+            document.getElementById("answer").innerText = response.answer;
         }
         catch(e) 
         {
@@ -70,7 +73,7 @@
             reader.onload = function(e) 
             {
                 const text = e.target.result;
-                document.getElementById("text").value = text;
+                document.getElementById("text").innerText = text;
             }
 
             reader.readAsText(file);
